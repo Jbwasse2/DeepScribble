@@ -1,6 +1,3 @@
-[submodule "docs/5c755d06c127913684edfe70"]
-	path = docs/5c755d06c127913684edfe70
-	url = https://git.overleaf.com/5c755d06c127913684edfe70
 [submodule "docs/writeUp"]
 	path = docs/writeUp
 	url = https://git.overleaf.com/5c755d06c127913684edfe70
