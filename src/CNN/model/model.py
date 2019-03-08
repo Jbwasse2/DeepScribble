@@ -2,22 +2,77 @@ import torch.nn as nn
 import torch.nn.functional as F
 from base import BaseModel
 
+#kernel_size was not specified, so will probably need to play around
+import logging
+import torch.nn as nn
+import numpy as np
 
-class CNN(BaseModel):
-    def __init__(self, num_classes=10):
-        super(MnistModel, self).__init__()
-        self.conv1 = nn.Conv2d(1, 10, kernel_size=5)
-        self.conv2 = nn.Conv2d(10, 20, kernel_size=5)
-        self.conv2_drop = nn.Dropout2d()
-        self.fc1 = nn.Linear(320, 50)
+
+class CNN(nn.Module):
+    """
+    Base class for all models
+    """
+    def __init__(self, num_classes=242):
+        super(cnn, self).__init__()
+        self.logger = logging.getLogger(self.__class__.__name__)
+        self.global_layer1 = nn.Sequential(
+        nn.Conv2d(4, 32, kernel_size=2, stride=4),
+        nn.BatchNorm2d(32),
+        nn.ReLU()
+        )
+        self.global_layer2 = nn.Sequential(
+        nn.Conv2d(32, 64, stride=2, kernel_size=2)
+        nn.BatchNorm2d(64),
+        nn.ReLU()
+        )
+        self.global_layer3 = nn.Sequential(
+        nn.Conv2d(64, 64, stride=1, kernel_size=2)
+        nn.BatchNorm2d(64),
+        nn.ReLU()
+        )
+        self.local_layer = nn.Sequential(
+        self.local_conv = nn.Conv2d(2, 128, stride=1, kernel_size=2)
+        nn.BatchNorm2d(128),
+        nn.ReLU()
+        )
+        self.fc1 = nn.Linear(192, 50)
         self.fc2 = nn.Linear(50, num_classes)
 
-    def forward(self, x):
-        x = F.relu(F.max_pool2d(self.conv1(x), 2))
-        x = F.relu(F.max_pool2d(self.conv2_drop(self.conv2(x)), 2))
-        x = x.view(-1, 320)
-        x = F.relu(self.fc1(x))
-        x = F.dropout(x, training=self.training)
-        x = self.fc2(x)
-        return F.log_softmax(x, dim=1)
+    def forward(self, x, y):
+	"""
+	Forward pass logic
+
+	:return: Model output
+	"""
+        #Assume x is of for (batch_size, 4 , 81, 81)
+        #Assume y is of for (batch_size, 2 , 11, 11)
+        x = self.global_layer1(x) 
+        x = self.global_layer2(x) 
+        x = self.global_layer3(x) 
+        y = self.local_layer(y)
+        cat = np.concat([x,y])
+        out = self.fc1(cat)
+        out = self.fc2(cat)
+        return out
+        
+    def summary(self):
+        """
+        Model summary
+        """
+        model_parameters = filter(lambda p: p.requires_grad, self.parameters())
+        params = sum([np.prod(p.size()) for p in model_parameters])
+        self.logger.info('Trainable parameters: {}'.format(params))
+        self.logger.info(self)
+
+    def __str__(self):
+        """
+        Model prints with number of trainable parameters
+        """
+        model_parameters = filter(lambda p: p.requires_grad, self.parameters())
+        params = sum([np.prod(p.size()) for p in model_parameters])
+        return super(BaseModel, self).__str__() + '\nTrainable parameters: {}'.format(params)
+        # print(super(BaseModel, self))
+
+
+
 
