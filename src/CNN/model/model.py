@@ -5,15 +5,20 @@ from base import BaseModel
 #kernel_size was not specified, so will probably need to play around
 import logging
 import torch.nn as nn
+import random
 import numpy as np
+import torch
+import torch.autograd as autograd
 
+USE_CUDA = torch.cuda.is_available()
+Variable = lambda *args, **kwargs: autograd.Variable(*args, **kwargs).cuda() if USE_CUDA else autograd.Variable(*args, **kwargs)
 
-class CNN(nn.Module):
+class DQN(nn.Module):
     """
     Base class for all models
     """
     def __init__(self, num_classes=242):
-        super(cnn, self).__init__()
+        super(DQN, self).__init__()
         self.logger = logging.getLogger(self.__class__.__name__)
         self.global_layer1 = nn.Sequential(
         nn.Conv2d(4, 32, kernel_size=2, stride=4),
@@ -54,25 +59,13 @@ class CNN(nn.Module):
         out = self.fc1(cat)
         out = self.fc2(cat)
         return out
-        
-    def summary(self):
-        """
-        Model summary
-        """
-        model_parameters = filter(lambda p: p.requires_grad, self.parameters())
-        params = sum([np.prod(p.size()) for p in model_parameters])
-        self.logger.info('Trainable parameters: {}'.format(params))
-        self.logger.info(self)
 
-    def __str__(self):
-        """
-        Model prints with number of trainable parameters
-        """
-        model_parameters = filter(lambda p: p.requires_grad, self.parameters())
-        params = sum([np.prod(p.size()) for p in model_parameters])
-        return super(BaseModel, self).__str__() + '\nTrainable parameters: {}'.format(params)
-        # print(super(BaseModel, self))
-
-
-
+    def act(self, state, epsilon):
+        if random.random() > epsilon:
+            state   = Variable(torch.FloatTensor(state).unsqueeze(0), volatile=True)
+            q_value = self.forward(state)
+            action  = q_value.max(1)[1].data[0]
+        else:
+            action = random.randrange(env.action_space.n)
+        return action
 

@@ -3,7 +3,7 @@
     "n_gpu": 1,
     
     "arch": {
-        "type": "MnistModel",
+        "type": "DQN",
         "args": {}
     },
     "data_loader": {
@@ -36,6 +36,8 @@
         }
     },
     "trainer": {
+        "L" : 81,
+        "max_pen_move" : 5,
         "epochs": 100,
         "save_dir": "saved/",
         "save_period": 1,

@@ -15,9 +15,6 @@ class CNNDataLoader(BaseDataLoader):
     MNIST data loading demo using BaseDataLoader
     """
     def __init__(self, data_dir, batch_size, shuffle, validation_split, num_workers, training=True):
-        trsfm = transforms.Compose([
-            transforms.ToTensor(),
-            ])
         self.data_dir = data_dir
         self.dataset = CNNData(self.data_dir)
 
@@ -32,9 +29,13 @@ class CNNData(Dataset):
             transform: pytorch transforms for transforms and tensor conversion
         """
         # Transforms
+        self.trsfm = transforms.Compose([
+            transforms.ToTensor(),
+            ])
         self.to_tensor = transforms.ToTensor()
         # Calculate len
         self.data_len = len([name for name in os.listdir(img_path) if os.path.isfile(img_path + name)])
+        self.image_arr = [img_path + name for name in os.listdir(img_path) if os.path.isfile(img_path + name)]
 
     def __getitem__(self, index):
         # Get image name from the pandas df
@@ -42,21 +43,14 @@ class CNNData(Dataset):
         # Open image
         img_as_img = Image.open(single_image_name)
 
-        # Check if there is an operation
-        some_operation = self.operation_arr[index]
         # If there is an operation
-        if some_operation:
-            # Do some operation on image
-            # ...
-            # ...
-            pass
-        # Transform image to tensor
-        img_as_tensor = self.to_tensor(img_as_img)
+        if self.trsfm:
+            img_as_img = self.trsfm(img_as_img)
 
-        # Get label(class) of the image based on the cropped pandas column
-        single_image_label = self.label_arr[index]
+        #Get 11x11 subsection
+        #local_data = img_as_img[penLocation[0]-5:penLocation[0]+5+1, penLocation[1]-5:penLocation[1]+5+1]
 
-        return (img_as_tensor, single_image_label)
+        return (img_as_img)
 
     def __len__(self):
         return self.data_len
