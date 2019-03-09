@@ -9,7 +9,6 @@ import model.model as module_arch
 from trainer import Trainer
 from utils import Logger
 
-
 def get_instance(module, name, config, *args):
     return getattr(module, config[name]['type'])(*args, **config[name]['args'])
 
@@ -45,7 +44,7 @@ def main(config, resume):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='PyTorch Template')
-    parser.add_argument('-c', '--config', default=None, type=str,
+    parser.add_argument('-c', '--config', default='config.json', type=str,
                            help='config file path (default: None)')
     parser.add_argument('-r', '--resume', default=None, type=str,
                            help='path to latest checkpoint (default: None)')
