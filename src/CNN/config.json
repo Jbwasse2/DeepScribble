@@ -36,7 +36,7 @@
         }
     },
     "trainer": {
-        "L" : 81,
+        "L" : 80,
         "max_pen_move" : 5,
         "epochs": 100,
         "save_dir": "saved/",

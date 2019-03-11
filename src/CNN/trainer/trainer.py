@@ -4,6 +4,8 @@ from torchvision.utils import make_grid
 import random
 from base import BaseTrainer
 import seaborn as sns
+from torchvision import datasets, transforms
+import torchvision.transforms.functional as F
 import matplotlib.pyplot as plt
 
 
@@ -87,13 +89,31 @@ class Trainer(BaseTrainer):
         pen_state = 1
         canvas = np.zeros((self.L,self.L))
         for batch_idx, (data) in enumerate(self.data_loader):
+            trsfm = transforms.Compose([
+                transforms.ToTensor(),
+            ])
             im = data[0,0,:,:].numpy()
-            data = data.to(self.device)
             distanceMap = self.getDistanceMap(pen_position[0], pen_position[1], self.L)
             colormap = np.ones((self.L,self.L)) if pen_state == 1 else np.zeros((self.L,self.L))
-            localCanvas = self.getSubCanvas(pen_position[0], pen_position[1], im)2
+            localCanvas = self.getSubCanvas(pen_position[0], pen_position[1], im)
             self.optimizer.zero_grad()
-            output = self.model(data)
+            global_data = np.stack([canvas,im,distanceMap,colormap])
+            global_data = np.swapaxes(global_data,0,1)
+            global_data = np.swapaxes(global_data, 1, 2)
+            if trsfm:
+                global_data = trsfm(global_data)
+            global_data =  global_data.unsqueeze(0)
+            local_data = localCanvas
+            local_data = np.expand_dims(local_data, axis=0) #Need to add extra dimension to specify 1 channel
+            local_data = np.swapaxes(local_data,0,1)
+            local_data = np.swapaxes(local_data, 1, 2)
+            if trsfm:
+                local_data = trsfm(local_data)
+            local_data = local_data.unsqueeze(0)
+            #send data to shadow realm (GPU)
+            global_data = global_data.to(self.device)
+            local_data = local_data.to(self.device)
+            output = self.model(global_data, local_data)
           #  loss = self.loss(output, target)
             loss = 0
             target = None

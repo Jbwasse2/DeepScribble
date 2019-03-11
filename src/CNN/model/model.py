@@ -26,22 +26,27 @@ class DQN(nn.Module):
         nn.ReLU()
         )
         self.global_layer2 = nn.Sequential(
-        nn.Conv2d(32, 64, stride=2, kernel_size=2),
+        nn.Conv2d(32, 64, kernel_size=2, stride=3),
         nn.BatchNorm2d(64),
         nn.ReLU()
         )
         self.global_layer3 = nn.Sequential(
-        nn.Conv2d(64, 64, stride=1, kernel_size=2),
-        nn.BatchNorm2d(64),
-        nn.ReLU()
-        )
-        self.local_layer = nn.Sequential(
-        nn.Conv2d(2, 128, stride=1, kernel_size=2),
+        nn.Conv2d(64, 128, stride=2, kernel_size=2),
         nn.BatchNorm2d(128),
         nn.ReLU()
         )
-        self.fc1 = nn.Linear(192, 50)
-        self.fc2 = nn.Linear(50, num_classes)
+        self.global_layer4 = nn.Sequential(
+        nn.Conv2d(128, 128, stride=1, kernel_size=2),
+        nn.BatchNorm2d(128),
+        nn.ReLU()
+        )
+        self.local_layer = nn.Sequential(
+        nn.Conv2d(1, 128, stride=1, kernel_size=9),
+        nn.BatchNorm2d(128),
+        nn.ReLU()
+        )
+        self.fc1 = nn.Linear(1152, 512)
+        self.fc2 = nn.Linear(512, num_classes)
 
     def forward(self, x, y):
         """
@@ -51,13 +56,16 @@ class DQN(nn.Module):
         """
         #Assume x is of for (batch_size, 4 , 81, 81)
         #Assume y is of for (batch_size, 2 , 11, 11)
+        x = x.float()
+        y = y.float()
         x = self.global_layer1(x) 
         x = self.global_layer2(x) 
         x = self.global_layer3(x) 
         y = self.local_layer(y)
-        cat = np.concat([x,y])
+        cat = torch.cat([x,y])
+        cat = cat.reshape(cat.size(0), -1)
         out = self.fc1(cat)
-        out = self.fc2(cat)
+        out = self.fc2(out)
         return out
 
     def act(self, state, epsilon):

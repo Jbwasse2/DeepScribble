@@ -43,7 +43,6 @@ class CNNData(Dataset):
         single_image_name = self.image_arr[index]
         # Open image
         img_as_img = Image.open(single_image_name).convert('L')
-        pix = np.array(img_as_img)
         # If there is an operation
         if self.trsfm:
             img_as_tensor = self.trsfm(img_as_img)
