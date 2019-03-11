@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 from PIL import Image
 import os, os.path
+import numpy as np
 from torch.utils.data import DataLoader
 from torch.utils.data.dataloader import default_collate
 from torch.utils.data.sampler import SubsetRandomSampler
@@ -41,16 +42,18 @@ class CNNData(Dataset):
         # Get image name from the pandas df
         single_image_name = self.image_arr[index]
         # Open image
-        img_as_img = Image.open(single_image_name)
-
+        img_as_img = Image.open(single_image_name).convert('L')
+        pix = np.array(img_as_img)
         # If there is an operation
         if self.trsfm:
-            img_as_img = self.trsfm(img_as_img)
+            img_as_tensor = self.trsfm(img_as_img)
 
-        #Get 11x11 subsection
-        #local_data = img_as_img[penLocation[0]-5:penLocation[0]+5+1, penLocation[1]-5:penLocation[1]+5+1]
-
-        return (img_as_img)
+        return (img_as_tensor)
 
     def __len__(self):
         return self.data_len
+
+if __name__ == "__main__":
+    foo = CNNData(img_path = "../data_loader/data/")
+    bar = foo[1]
+    print(bar.shape)

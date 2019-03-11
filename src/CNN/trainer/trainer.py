@@ -4,16 +4,7 @@ from torchvision.utils import make_grid
 import random
 from base import BaseTrainer
 import seaborn as sns
-
-def getDistanceMap(x,y,L):
-    distanceMap = np.zeros((L,L))
-    for i in L:
-        for j in L:
-            distanceMap[i,j] = np.sqrt((i-x)**2 + (j-y)**2) / L
-    return distanceMap
-
-def getSubCanvas(x,y,canvas):
-    return canvas[x-max_pen_move:x+max_pen_move+1, y-max_pen_move:y+max_pen_move+1]
+import matplotlib.pyplot as plt
 
 
 from collections import deque
@@ -52,6 +43,8 @@ class Trainer(BaseTrainer):
         self.do_validation = self.valid_data_loader is not None
         self.lr_scheduler = lr_scheduler
         self.log_step = int(np.sqrt(data_loader.batch_size))
+        self.L = config['trainer']['L']
+        self.max_pen_move = config['trainer']['max_pen_move']
 
     def _eval_metrics(self, output, target):
         acc_metrics = np.zeros(len(self.metrics))
@@ -59,6 +52,16 @@ class Trainer(BaseTrainer):
             acc_metrics[i] += metric(output, target)
             self.writer.add_scalar(f'{metric.__name__}', acc_metrics[i])
         return acc_metrics
+
+    def getDistanceMap(self, x, y, L):
+        distanceMap = np.zeros((L, L))
+        for i in range(L):
+            for j in range(L):
+                distanceMap[i, j] = np.sqrt((i - x) ** 2 + (j - y) ** 2) / L
+        return distanceMap
+
+    def getSubCanvas(self, x, y, canvas):
+        return canvas[x - self.max_pen_move:x + self.max_pen_move + 1, y - self.max_pen_move:y + self.max_pen_move + 1]
 
     def _train_epoch(self, epoch):
         """
@@ -82,12 +85,13 @@ class Trainer(BaseTrainer):
         total_metrics = np.zeros(len(self.metrics))
         pen_position = (15,15)
         pen_state = 1
-        canvas = np.zeros((L,L))
+        canvas = np.zeros((self.L,self.L))
         for batch_idx, (data) in enumerate(self.data_loader):
+            im = data[0,0,:,:].numpy()
             data = data.to(self.device)
-            distanceMap = getDistanceMap(pen_position[0], pen_position[1], L)
-            colormap = np.ones((L,L)) if pen_state == 1 else np.zeros((L,L))
-            localCanvas = getSubCanvas(pen_position[0], pen_position[1], data)
+            distanceMap = self.getDistanceMap(pen_position[0], pen_position[1], self.L)
+            colormap = np.ones((self.L,self.L)) if pen_state == 1 else np.zeros((self.L,self.L))
+            localCanvas = self.getSubCanvas(pen_position[0], pen_position[1], im)2
             self.optimizer.zero_grad()
             output = self.model(data)
           #  loss = self.loss(output, target)
