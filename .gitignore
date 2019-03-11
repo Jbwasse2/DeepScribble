@@ -1,0 +1,9 @@
+*./
+*__pycache__*
+*data_loader/data*
+save/
+*.swp
+*.idea*
+src/CNN/data_loader/data*
+src/CNN/saved*
+data/words.tgz
