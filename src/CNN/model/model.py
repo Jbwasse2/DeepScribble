@@ -21,32 +21,27 @@ class DQN(nn.Module):
         super(DQN, self).__init__()
         self.logger = logging.getLogger(self.__class__.__name__)
         self.global_layer1 = nn.Sequential(
-        nn.Conv2d(4, 32, kernel_size=2, stride=4),
+        nn.Conv2d(4, 32, kernel_size=50, stride=4),
         nn.BatchNorm2d(32),
         nn.ReLU()
         )
         self.global_layer2 = nn.Sequential(
-        nn.Conv2d(32, 64, kernel_size=2, stride=3),
+        nn.Conv2d(32, 64, kernel_size=2, stride=2),
         nn.BatchNorm2d(64),
         nn.ReLU()
         )
         self.global_layer3 = nn.Sequential(
-        nn.Conv2d(64, 128, stride=2, kernel_size=2),
-        nn.BatchNorm2d(128),
-        nn.ReLU()
-        )
-        self.global_layer4 = nn.Sequential(
-        nn.Conv2d(128, 128, stride=1, kernel_size=2),
-        nn.BatchNorm2d(128),
+        nn.Conv2d(64, 64, stride=1, kernel_size=2),
+        nn.BatchNorm2d(64),
         nn.ReLU()
         )
         self.local_layer = nn.Sequential(
-        nn.Conv2d(1, 128, stride=1, kernel_size=9),
+        nn.Conv2d(1, 128, stride=1, kernel_size=1),
         nn.BatchNorm2d(128),
         nn.ReLU()
         )
-        self.fc1 = nn.Linear(1152, 512)
-        self.fc2 = nn.Linear(512, num_classes)
+        self.fc1 = nn.Linear(16064, 1024)
+        self.fc2 = nn.Linear(1024, num_classes)
 
     def forward(self, x, y):
         """
@@ -62,8 +57,11 @@ class DQN(nn.Module):
         x = self.global_layer2(x) 
         x = self.global_layer3(x) 
         y = self.local_layer(y)
+        x = (x.reshape(x.size(0), -1))
+        y = (y.reshape(x.size(0), -1))
+        x = np.squeeze(x)
+        y = np.squeeze(y)
         cat = torch.cat([x,y])
-        cat = cat.reshape(cat.size(0), -1)
         out = self.fc1(cat)
         out = self.fc2(out)
         return out
