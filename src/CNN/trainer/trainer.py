@@ -88,7 +88,7 @@ class Trainer(BaseTrainer):
         pen_position = (15,15)
         pen_state = 1
         canvas = np.zeros((self.L,self.L))
-        for batch_idx, (data) in enumerate(self.data_loader):
+        for batch_idx, (data, target) in enumerate(self.data_loader):
             trsfm = transforms.Compose([
                 transforms.ToTensor(),
             ])
@@ -114,9 +114,10 @@ class Trainer(BaseTrainer):
             global_data = global_data.to(self.device)
             local_data = local_data.to(self.device)
             output = self.model(global_data, local_data)
-          #  loss = self.loss(output, target)
-            loss = 0
-            target = None
+            #output = torch.unsqueeze(output,0)
+            output = output.to(self.device)
+            target = target.to(self.device)
+            loss = self.loss(output, target)
             loss.backward()
             self.optimizer.step()
             self.writer.set_step((epoch - 1) * len(self.data_loader) + batch_idx)

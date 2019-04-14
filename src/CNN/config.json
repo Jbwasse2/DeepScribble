@@ -9,8 +9,8 @@
     "data_loader": {
         "type": "CNNDataLoader",
         "args":{
-            "data_dir": "data_loader/data/",
-            "batch_size": 1,
+            "data_dir": "/home/justin/Documents/class/2019sp/abe598/final/data/scribble/imgs/",
+            "batch_size": 128,
             "shuffle": true,
             "validation_split": 0.1,
             "num_workers": 2

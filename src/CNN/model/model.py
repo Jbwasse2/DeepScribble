@@ -17,7 +17,7 @@ class DQN(nn.Module):
     """
     Base class for all models
     """
-    def __init__(self, num_classes=242):
+    def __init__(self, num_classes=10):
         super(DQN, self).__init__()
         self.logger = logging.getLogger(self.__class__.__name__)
         self.global_layer1 = nn.Sequential(
@@ -65,7 +65,6 @@ class DQN(nn.Module):
         out = self.fc1(cat)
         out = self.fc2(out)
         return out
-
     def act(self, state, epsilon):
         if random.random() > epsilon:
             state   = Variable(torch.FloatTensor(state).unsqueeze(0), volatile=True)

@@ -1,10 +1,14 @@
 import torch.nn.functional as F
 import torch
 import numpy as np
-
+import torch.nn as nn
 
 def nll_loss(output, target):
-    return F.nll_loss(output, target)
+    # Used a softmax cross entropy loss for the classification task
+    # Loss is minimized with Adam with mminibatches of size 128 with alpha = 0.001 and gradual decay
+    criterion = nn.CrossEntropyLoss()
+    loss = criterion(output, target)
+    return loss
 
 
 def compute_td_loss(batch_size):
